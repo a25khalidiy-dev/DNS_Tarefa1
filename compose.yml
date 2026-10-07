@@ -25,16 +25,33 @@ services:
   darthvader:
     build: dnsserver
     hostname: darthvader
-    command: -g -4
+    command: -g -4 -u root
     volumes:
       - ./darthvader/named.conf.options:/etc/bind/named.conf.options
       - ./darthvader/named.conf.local:/etc/bind/named.conf.local
       - ./darthvader/zonas:/var/cache/bind
+      - ./darthvader/zonas/db.starwars.lan:/etc/bind/db.starwars.lan
       - ./dnsserver/root.hints:/usr/share/dns/root.hints
       - ./logs:/logs
+      - ./darthvader/zonas/db.192:/etc/bind/db.192
     networks:
       rededns:
         ipv4_address: 192.168.20.10
+
+  mandalorian:
+    build: dnsserver
+    hostname: mandalorian
+    depends_on:
+      - darthvader
+    command: -g -4 -u root
+    volumes:
+      - ./mandalorian/named.conf.options:/etc/bind/named.conf.options
+      - ./mandalorian/named.conf.local:/etc/bind/named.conf.local
+      - ./mandalorian/zonas:/var/cache/bind
+      - ./logs:/logs
+    networks:
+      rededns:
+        ipv4_address: 192.168.20.12
 
   darthsidious:
     build: dnsserver
@@ -73,12 +90,10 @@ services:
       - ./cliente/actualiza.txt:/etc/bind/actualiza.txt
     dns: 
     - 192.168.20.10
-    - 192.168.20.11
+    - 192.168.20.12
 
 networks:
   rededns:
     ipam:
       config:
         - subnet: 192.168.20.0/24
-
-
